@@ -1,4 +1,3 @@
-.include "random.inc"
 
 ; Derived from Damian Yerrick's random.s, which included the following notices:
 ;
@@ -16,7 +15,10 @@
 ;   Setting seed to $FFFF and then taking
 ;   CRC([$01 $02 $03 $04]) should evaluate to $89C3.
 
+.fileopt    comment, "Damien Yerrick's CRC-16 pseudo-random number generator"
+.fileopt    author,  "Damien Yerrick, adapted for ca65 by Max Bane"
 
+.include "random.inc"
 .segment "ZEROPAGE"
 
 ; Current value of CRC, not necessarily contiguous
