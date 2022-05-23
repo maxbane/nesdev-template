@@ -24,21 +24,24 @@ PPU_included = 1
     .importzp nmi_ready
     .importzp nmt_buffer_len
 
-    ; X and Y scroll amounts for next frame
+    ; buffered X and Y scroll amounts for next frame
     .importzp scroll_x, scroll_y
     ; Scrolling nametable select (lowest two bits of REG_CTRL) 
     .importzp scroll_nmt
-    ; REG_MASK value to write on next frame
+    ; buffered REG_MASK value to write on next frame
 	.importzp mask
-    ; REG_CTRL value for next frame (will be OR'd with lower two bits of
-    ; scroll_mnt)
+    ; buffered REG_CTRL value for next frame (will be OR'd with lower two bits
+    ; of scroll_mnt)
     .importzp ctrl
 
     ; PPU Routines
-    .import reset
-    .import nmi_buffered
-    .import update
-    .import skip
+    .import reset               ; Reset handler, called by game's reset IRQ
+    .import nmi_buffered        ; NMI implementation for buffered updates
+    .import update              ; Called by game logic to signal all buffers
+                                ; ready for next frame.
+    .import skip                ; Called by game logic to signal ready for next
+                                ; frame, but to skip updating the PPU from the
+                                ; buffers.
     .import render_off
     .import address_tile
     .import update_tile_at_xy

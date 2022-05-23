@@ -113,7 +113,7 @@ irq:
 
 .segment "CODE"
 .proc main
-    ; setup 
+    ; prepare palette buffer for next NMI
     ldx #0
     :
         lda main_palettes, X
@@ -122,6 +122,7 @@ irq:
         cpx #32
         bcc :-
 
+    ; draw a grassy scene
     jsr PPU::clear_background
     Random_seed_crc16 #$ff00
     jsr draw_grass
