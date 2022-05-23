@@ -7,6 +7,7 @@
 *.nes.deb
 *.map.txt
 *.labels.txt
+*.d
 .exrc
 .vimrc
 chr/*.chr
