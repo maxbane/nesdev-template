@@ -35,7 +35,7 @@ INES_HEADER INES_PRG_BANK_COUNT, INES_CHR_BANK_COUNT, INES_MAPPER, INES_MIRROR, 
 ;
 
 .segment "TILES"
-.incbin "chr/background.chr"
+.incbin "background.chr"
 ;.incbin "chr/sprites-bee.chr"
 
 ;
