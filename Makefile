@@ -125,8 +125,8 @@ mesen: 	$(NESFILE)
 # depends on its corresponding .s file; the .d file only needs to mention any
 # dependencies in addition to this.
 $(DEPDIR)/%.d: %.s bin/autodep
-	set -e; rm -f $@; \
-		bin/autodep --include-binary-dir $(CHRDIR) $< > $@.$$$$; \
+	@set -e; rm -f $@; \
+		bin/autodep --include-dir $(INCDIR) $< > $@.$$$$; \
 		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 		rm -f $@.$$$$
 

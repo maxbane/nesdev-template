@@ -7,40 +7,83 @@ import re
 
 PATTERN_INCLUDE = r'^[^;]*\s*(\.include|\.incbin)\s+"(.+)"'
 
+INCLUDE_TYPES = (
+    '.include',
+    '.incbin',
+)
+
 pattern_include = re.compile(PATTERN_INCLUDE)
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='autdependencies')
-    #parser.add_argument('--include-dir',  dest='include_dir', metavar='DIR')
-    parser.add_argument('--include-binary-dir',  dest='include_binary_dir',
-            metavar='DIR')
-    parser.add_argument('source_file', metavar='SOURCE_FILE')
-    args = parser.parse_args()
-    
-    source = open(args.source_file, 'r')
-    deps = [] # to be populated
-    source_basename = os.path.basename(args.source_file)
-    obj_basename = source_basename.replace('.s', '.o')
+def visit_file(filename_as_included, args, deps, visited):
+    try:
+        source = open(filename_as_included, 'r')
+    except:
+        source = open(
+            os.path.sep.join([args.include_dir, filename_as_included]),
+            'r')
 
+    if args.verbose:
+        print(
+            f'Visiting included "{filename_as_included}" at {source.name}',
+            file=sys.stderr
+        )
+    visited.add(filename_as_included)
     line = None
     line_no = 0
     while line != '':
         line = source.readline() # returns empty str at EOF
         line_no += 1
-        # perhaps we could do this with regexes, but the question of balanced
-        # strings makes it tricky
         match = pattern_include.match(line)
         if match is None:
             continue
         include_type = match.group(1)
         filename = match.group(2)
-        assert(include_type in ('.include', '.incbin'))
-        # TODO: follow recursive includes
-        #if include_type == '.incbin':
-        #    deps.append(os.path.sep.join(
-        #        [args.include_binary_dir, filename]))
-        #else:
-        #    deps.append(filename)
-        deps.append(filename)
+        assert(include_type in INCLUDE_TYPES)
+        if args.verbose:
+            print(
+                f"Found {repr(include_type)} statement at line {line_no}, "
+                f"referencing {repr(filename)}",
+                file=sys.stderr
+            )
+        deps.add(filename)
 
+        if include_type == '.include':
+            # recurse through `.include`s (but not `.incbin`s)
+            if filename not in visited:
+                visit_file(filename, args, deps, visited)
+        elif args.verbose:
+            print(
+                f"File {repr(filename)} has already been visited",
+                file=sys.stderr
+            )
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Auto-generate a GNU Makefile-compatible prerequisites '
+        'statement for a ca65 assembly module by recursively scanning the '
+        'assembly source for includes.'
+    )
+    parser.add_argument('--verbose', '-v', dest='verbose',
+            action='store_true', default=False)
+    parser.add_argument('--include-dir', '-i', dest='include_dir',
+            metavar='DIR', default='.')
+    parser.add_argument('source_file', metavar='SOURCE_FILE')
+    args = parser.parse_args()
+    
+    source_basename = os.path.basename(args.source_file)
+    obj_basename = source_basename.replace('.s', '.o')
+
+    # sets to be populated by recrusive traversal of includes
+    deps = set()
+    visited = set()
+
+    # traverse includes recursively
+    print(
+        f"{sys.argv[0]}: scanning for includes: {args.source_file}",
+        file=sys.stderr
+    )
+    visit_file(args.source_file, args, deps, visited)
+
+    # result
     print(f"{obj_basename}:\t{' '.join(deps)}\n")
