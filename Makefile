@@ -15,7 +15,8 @@ CHRDIR		= chr
 # Required linker configuration file, which controls the layout of code/data
 # segments in the iNES container as well as the runtime address ranges of
 # memory segments (code, data, RAM). Goes hand-in-hand with the cartridge
-# hardware targeted (i.e., mapper).
+# hardware targeted (i.e., mapper). You'll need to change this if targeting
+# anything other than NROM.
 LDCFG	= ldcfg/nrom.cfg
 
 # Output dirs (created by make, deleted by make clean):
@@ -32,11 +33,11 @@ NESFILE = $(PROJECT).nes
 # included by it, e.g. by `.include` and `.incbin` directives.
 #
 # This is the main definition that the developer changes to add or remove
-# modules (i.e. code and data) from the final iNES container.
+# modules (i.e. code and data) to or from the final iNES container.
 OBJECTS = locals.o main.o ppu.o joy.o random.o
 
-# Alternatively, for zero Makefile-editing, we could link together every object
-# for which there is a source file.
+# Alternatively, for zero Makefile-editing as you write new modules, you could
+# link together every object for which there is a source file:
 # SOURCES = $(wildcard $(ASMDIR)/*.s)
 # OBJECTS = $(notdir $(SOURCES:.s=.o))
 
@@ -62,22 +63,24 @@ all: $(NESFILE)
 # NESFILE depends on OBJECTS and should be created after DISTDIR
 $(NESFILE): $(OBJECTS) | $(DISTDIR)
 
-# OBJECTS should be created after OBJDIR and DISTDIR (but don't depend on them)
+# Object files should be created after OBJDIR and DISTDIR (but they don't depend
+# on them)
 $(OBJECTS): | $(OBJDIR) $(DEPDIR)
 
-# The automatically generated dependency file for each object
+# The list of dependency files (.d files), one for each object
 DEPS = $(addprefix $(DEPDIR)/,$(OBJECTS:.o=.d))
 
+# Dependency files should be create after DEPDIR and OBJDIR
 $(DEPS): | $(DEPDIR) $(OBJDIR)
 
 # How to create the output dirs
 $(OBJDIR) $(DEPDIR) $(DISTDIR):
 	mkdir $@
 
-# Assembler (ca65) flags, e.g., for debugging symbols
+# Assembler (ca65) flags
 ASFLAGS = -g --include-dir $(INCDIR) --bin-include-dir $(CHRDIR)
 
-# Optional linker (ld65) flags
+# Linker (ld65) flags
 LDFLAGS = --obj-path $(OBJDIR)
 
 
@@ -152,8 +155,8 @@ include $(DEPS)
 # rules.
 .PRECIOUS: %.png
 
-# The main pattern rules for building object and nes files with the assembler
-# and linker, respectively.
+# Below: the main pattern rules for building object and nes files with the
+# assembler and linker, respectively.
 
 %.o: %.s
 	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
