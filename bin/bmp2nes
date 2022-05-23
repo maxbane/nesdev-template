@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+
 # Bitmap to multi-console CHR converter using PIL or Pillow
 #
 # Copyright 2014 Damian Yerrick
@@ -7,6 +7,9 @@
 # modification, are permitted in any medium without royalty
 # provided the copyright notice and this notice are preserved.
 # This file is offered as-is, without any warranty.
+#
+# Note from Max Bane, 20220523: this script fails for me with python2.7, but
+# works fine with python3.8.
 #
 from __future__ import with_statement, print_function, unicode_literals
 from PIL import Image

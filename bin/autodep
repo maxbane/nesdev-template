@@ -1,20 +1,39 @@
 #!/usr/bin/env python
 
+# Script to output the make dependencies of a module by inspecting the assembly
+# source code and tracking include directives recursively.
+# Use python3.
+
 import sys
 import os.path
 import argparse
 import re
 
 PATTERN_INCLUDE = r'^[^;]*\s*(\.include|\.incbin)\s+"(.+)"'
+pattern_include = re.compile(PATTERN_INCLUDE)
 
 INCLUDE_TYPES = (
     '.include',
     '.incbin',
 )
 
-pattern_include = re.compile(PATTERN_INCLUDE)
+parser = argparse.ArgumentParser(
+    description='Auto-generate a GNU Makefile-compatible prerequisites '
+    'statement for a ca65 assembly module by recursively scanning the '
+    'assembly source for includes.'
+)
+parser.add_argument('--verbose', '-v', dest='verbose',
+        action='store_true', default=False)
+parser.add_argument('--include-dir', '-i', dest='include_dir',
+        metavar='DIR', default='.')
+parser.add_argument('source_file', metavar='SOURCE_FILE')
 
 def visit_file(filename_as_included, args, deps, visited):
+    # first try to read the filename as given (i.e. relative to $PWD if it's
+    # realtive), then check the include dir.
+    # In the future, could consider also checking CA65_INC and CC65_HOME
+    # environment variables, replicating the actual behavior of ca65's .include,
+    # but the present version is Good Enough for our projects.
     try:
         source = open(filename_as_included, 'r')
     except:
@@ -59,16 +78,6 @@ def visit_file(filename_as_included, args, deps, visited):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Auto-generate a GNU Makefile-compatible prerequisites '
-        'statement for a ca65 assembly module by recursively scanning the '
-        'assembly source for includes.'
-    )
-    parser.add_argument('--verbose', '-v', dest='verbose',
-            action='store_true', default=False)
-    parser.add_argument('--include-dir', '-i', dest='include_dir',
-            metavar='DIR', default='.')
-    parser.add_argument('source_file', metavar='SOURCE_FILE')
     args = parser.parse_args()
     
     source_basename = os.path.basename(args.source_file)

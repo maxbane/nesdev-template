@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Script that runs gimp in headless mode to generate flat PNG images from XCF
+# source assets.
+
 set -o nounset
 
 GIMP="$(which gimp)"
